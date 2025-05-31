@@ -1,5 +1,5 @@
 # import numpy as np
-# import random
+import random
 # import time
 
 # import torch
@@ -23,15 +23,18 @@ class DQN(torch.nn.Module/tf.keras.Model):
 class ReplayBuffer():
     def __init__(self, buffer_size=10000):
         self.buffer = deque(maxlen=buffer_size) # deque es una doble cola que permite añadir y quitar elementos de ambos extremos
-
+        
     def push(self, state, action, reward, next_state, done):
         # insert into buffer
-        pass
+        # representa un paso del agente en el entorno (transición de un estado a otro)
+        self.buffer.append((state, action, reward, next_state, done))
         
     def sample(self, batch_size):
         # get a batch of experiences from the buffer
-        pass
-    
+        # cada vez que se llama la funcion sample se copia de nuevo el buffer como
+        batch = random.sample(self.buffer, batch_size)
+
+                
     def __len__(self):
         return len(self.buffer)
     
@@ -127,7 +130,7 @@ class DQNAgent():
         return loss
         
     def update_target_network(self):
-        # copiar los pesos de la red q a la red objetivo
+        # copiar los pesos de la red q a la red objetivo (cada cuantos episodios se actualizan los pesos de la red q a la red objetivo)
         pass
         
     def save_model(self, path):
