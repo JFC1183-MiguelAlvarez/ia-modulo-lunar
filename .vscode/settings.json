@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
-        "ReplayBuffer"
+        "ReplayBuffer",
+        "DQN Agent"
     ]
 }

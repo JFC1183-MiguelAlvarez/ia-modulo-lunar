@@ -2,7 +2,8 @@
 import random
 # import time
 
-# import torch
+import torch
+from torch import nn
 # import tensorflow as tf
 
 from collections import deque
@@ -14,9 +15,33 @@ from lunar import LunarLanderEnv
 # https://www.nature.com/articles/nature14236 (Human level control through RL)
 # https://www.lesswrong.com/posts/kyvCNgx9oAwJCuevo/deep-q-networks-explained
 
-class DQN(torch.nn.Module/tf.keras.Model):
+#AQUI VA LA RED NEURONAL
+class DQN(torch.nn.Module):
     def __init__(self, state_size, action_size, hidden_size):
-        pass
+        """
+        Initialize the DQN model with the given parameters.
+        Parameters:
+        state_size (int): The size of the state space (number of features in the state).
+        action_size (int): The size of the action space (number of possible actions).
+        hidden_size (int): The size of the hidden layer in the neural network.
+        """
+        super(DQN, self).__init__()
+
+        self.net = nn.Sequential(
+            nn.Linear(state_size, hidden_size), 
+            nn.ReLU(),
+            nn.Linear(hidden_size, action_size)
+        )
+
+    def forward(self, x):
+        """
+        Forward pass of the DQN model.
+        Parameters:
+        x (torch.Tensor): Input tensor representing the state.
+        Returns:
+        torch.Tensor: Output tensor representing the Q-values for each action.
+        """
+        return self.net(x)
     
     #puede requerir mas funciones segun la libreria escogida.
     
@@ -33,8 +58,13 @@ class ReplayBuffer():
         # get a batch of experiences from the buffer
         # cada vez que se llama la funcion sample se copia de nuevo el buffer como
         batch = random.sample(self.buffer, batch_size)
-
-                
+        states, actions, rewards, next_states, dones = zip(*batch)  # Unzip the batch into individual components
+        return (torch.tensor(states, dtype=torch.float32), 
+                torch.tensor(actions, dtype=torch.int64), 
+                torch.tensor(rewards, dtype=torch.float32), 
+                torch.tensor(next_states, dtype=torch.float32), 
+                torch.tensor(dones, dtype=torch.bool))
+      
     def __len__(self):
         return len(self.buffer)
     
@@ -59,6 +89,7 @@ class DQNAgent():
         memory_size (int): Number of experiences stored on the replay memory.
         episodes (int): Number of episodes to train the agent.
         target_network_update_freq (int): Frequency of updating the target network.
+        replays_per_episode (int): Number of experiences to replay per episode.
         """
         
         # Initialize hyperparameters
@@ -90,20 +121,21 @@ class DQNAgent():
         self.q_network = DQN(
             state_size=observation_space.shape[0],
             action_size=action_space.n,
-            hidden_size=0 #elegir un tamaño de capa oculta
+            hidden_size=64 #elegir un tamaño de capa oculta
         )
         
         self.target_network = DQN(
             state_size=observation_space.shape[0],
             action_size=action_space.n,
-            hidden_size=0 #elegir un tamaño de capa oculta
+            hidden_size=64 #elegir un tamaño de capa oculta
         )
         
         # Set weights of target network to be the same as those of the q network
-        self.target_network.
+        self.target_network.update_target_network()
       
-        self.optimizer = # depende del framework que uses (tf o pytorch)
+        self.optimizer = torch.optim.Adam(self.q_network.parameters(), lr=self.learning_rate)
         
+
         print(f"QNetwork:\n {self.q_network}")
           
     def act(self):
